@@ -81,12 +81,18 @@ function rewriteMarkdownUrls(node: Root | RootContent, basePath: string): void {
   }
 }
 
+function demoteMarkdownHeadings(node: Root | RootContent): void {
+  if (node.type === 'element' && node.tagName === 'h1') node.tagName = 'h2';
+  if ('children' in node) for (const child of node.children) demoteMarkdownHeadings(child);
+}
+
 async function renderMarkdown(markdown: string): Promise<string> {
   const basePath = process.env.BASE_PATH ?? '/';
   const rendered = await unified()
     .use(remarkParse)
     .use(remarkRehype)
     .use(() => (tree: Root) => rewriteMarkdownUrls(tree, basePath))
+    .use(() => (tree: Root) => demoteMarkdownHeadings(tree))
     .use(rehypeStringify)
     .process(markdown);
 

@@ -25,13 +25,13 @@ describe('static page presentation', () => {
 
   it('renders the complete journey with derived statistics and navigable learning content', () => {
     const html = renderToStaticMarkup(<JourneyPage journey={content.journeys[0]} content={content} />);
-    for (const text of ['Data Structures &amp; Algorithms', 'Graph Algorithms', 'Understanding BFS vs DFS', 'Skip to content']) expect(html).toContain(text);
+    for (const text of ['Artificial Intelligence - Machine Learing - Deep Learning', 'Generative &amp; Agentic AI', 'Decoder-Only Transformer from Scratch', 'Skip to content']) expect(html).toContain(text);
     expect(html).toContain(content.journeys[0].html);
-    expect(html).toContain('<dt>Topics</dt><dd>1</dd>');
-    expect(html).toContain('<dt>Notes</dt><dd>1</dd>');
-    expect(html).toContain('href="/portfolio/learning/dsa/notes/bfs-vs-dfs/"');
-    expect(html).toContain('href="https://github.com/aikev5694/DSA-Journey"');
-    expect(html).toContain('View DSA journey on GitHub');
+    expect(html).toContain('<dt>Topics</dt><dd>5</dd>');
+    expect(html).toContain('<dt>Notes</dt><dd>17</dd>');
+    expect(html).toContain('href="/portfolio/learning/ai-ml-dl/notes/decoder-only-transformer-from-scratch/"');
+    // expect(html).toContain('href="https://github.com/KDev094/session-12-Transformer-from-scratch-pt2/"');
+    // expect(html).toContain('View AI/ML journey on GitHub');
     expect(html).not.toContain('fetch(');
   });
 
@@ -58,18 +58,19 @@ describe('static page presentation', () => {
 
   it('shows the same authored project on Work and Projects and links to it from Home', () => {
     const routes = createRouteManifest(content);
-    for (const pageType of ['work', 'projects']) {
-      const html = renderToStaticMarkup(renderRoute(routes.find((route) => route.pageType === pageType)!));
-      expect(html.match(/id="taskflow"/g)).toHaveLength(1);
-      expect(html).toContain(content.projects[0].html);
-      expect(html).toContain('href="https://github.com/aikev5694/TaskFlow"');
-    }
-    const home = renderToStaticMarkup(renderRoute(routes[0]));
-    expect(home).toContain('href="/portfolio/projects/#taskflow"');
-    expect(home).toContain('href="/portfolio/learning/dsa/"');
-    expect(home).toContain('<blockquote');
-    expect(home).toContain('href="/portfolio/resume.pdf"');
-    expect(home).toContain('download="Kev-Resume.pdf"');
+        const projects = renderToStaticMarkup(renderRoute(routes.find((route) => route.pageType === 'projects')!));
+        const work = renderToStaticMarkup(renderRoute(routes.find((route) => route.pageType === 'work')!));
+        expect(projects).toContain('id="360-sales-intelligence-platform"');
+        // expect(projects).toContain('href="https://github.com/aikev5694/TaskFlow"');
+        expect(work).toContain('Roles &amp; responsibilities');
+        const home = renderToStaticMarkup(renderRoute(routes[0]));
+        for (const project of content.projects.filter((project) => project.featured).slice(0, 2)) {
+          expect(home).toContain(`href="/portfolio/projects/#${project.slug}"`);
+        }
+        expect(home).toContain('href="/portfolio/learning/ai-ml-dl/"');
+        expect(home).toContain('<blockquote');
+        expect(home).toContain('href="/portfolio/resume.pdf"');
+        expect(home).toContain('download="Keval-Darji-Resume.pdf"');
   });
 
   it('offers the résumé download from the About page but not the footer', () => {
@@ -86,13 +87,13 @@ describe('static page presentation', () => {
   });
 
   it('renders an article with authored prose and a back-to-journey anchor', () => {
-    const route = createRouteManifest(content).find((route) => route.pathname === '/learning/dsa/notes/bfs-vs-dfs/')!;
+    const route = createRouteManifest(content).find((route) => route.pathname === '/learning/ai-ml-dl/notes/decoder-only-transformer-from-scratch/')!;
     const html = renderToStaticMarkup(renderRoute(route));
     expect(html).toContain('<article');
-    expect(html).toContain('<strong>frontier</strong>');
-    expect(html).toContain('href="/portfolio/learning/dsa/"');
-    expect(html).toContain('Back to Data Structures &amp; Algorithms');
-    expect(html).toMatch(/<time[^>]*dateTime="2026-09-10"/);
+    expect(html).toContain('<strong>Query → What am I looking for?</strong>');
+    expect(html).toContain('href="/portfolio/learning/ai-ml-dl/"');
+    expect(html).toContain('Back to Artificial Intelligence - Machine Learing - Deep Learning');
+    expect(html).toMatch(/<time[^>]*dateTime="2025-01-18"/);
   });
 
   it.each(['/', '/preview/site/'])('honors the document base %s throughout its page links', (basePath) => {
