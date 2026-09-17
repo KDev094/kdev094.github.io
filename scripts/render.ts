@@ -1,4 +1,4 @@
-import { access, lstat, mkdir, readFile, readdir, unlink, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, readFile, readdir, unlink, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createElement } from 'react';
@@ -7,6 +7,7 @@ import { loadPortfolioContent } from '../src/lib/content/load';
 import { createRouteManifest, outputFileFor, type StaticRoute } from '../src/lib/routes/manifest';
 import { normalizeBasePath, siteBase } from '../src/lib/routes/paths';
 import { AppDocument, type DocumentAssets } from '../src/pages/AppDocument';
+import { verifyRequiredOutput } from './verify-output';
 
 const repositoryRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const outputRoot = path.resolve(repositoryRoot, 'dist');
@@ -51,29 +52,6 @@ await writePage({ pathname: '/404/', pageType: 'not-found', title: 'Page not fou
 const escapeXml = (value: string) => value.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;');
 const sitemap = routes.map((route) => `<url><loc>${escapeXml(new URL(siteBase(route.pathname, basePath), siteUrl).href)}</loc></url>`).join('\n');
 await writeFile(path.join(outputRoot, 'sitemap.xml'), `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${sitemap}\n</urlset>\n`);
-
-export async function verifyRequiredOutput(outputDirectory: string, generatedRoutes: StaticRoute[] = []): Promise<void> {
-  const requiredOutput = [...new Set([
-    outputFileFor('/'),
-    outputFileFor('/learning/'),
-    ...generatedRoutes.map((route) => outputFileFor(route.pathname)),
-  ])];
-  const exists = await Promise.all(
-    requiredOutput.map(async (relativePath) => {
-      try {
-        await access(path.join(outputDirectory, relativePath));
-        return true;
-      } catch {
-        return false;
-      }
-    }),
-  );
-  const missing = requiredOutput.filter((_, index) => !exists[index]);
-
-  if (missing.length > 0) {
-    throw new Error(`Static render is missing required output: ${missing.join(', ')}`);
-  }
-}
 
 await verifyRequiredOutput(outputRoot, routes);
 console.log(`Rendered ${routes.length} static pages, 404.html, and sitemap.xml (base: ${basePath}).`);
